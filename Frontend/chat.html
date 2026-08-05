@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - ChatBox</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/chat.css">
+</head>
+
+<body>
+
+<div class="chat-container">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+        <h2>💬 ChatBox</h2>
+
+        <div id="userList"></div>
+
+    </div>
+
+    <!-- Chat Area -->
+    <div class="chat-area">
+
+        <div class="chat-header">
+
+            <h2 id="chatUser">Select a User</h2>
+            <p>🟢 Online</p>
+
+        </div>
+
+        <div class="messages" id="chatBody"></div>
+
+        <div class="message-box">
+
+            <input
+                type="text"
+                id="messageInput"
+                placeholder="Type a message..."
+                autocomplete="off"
+            >
+
+            <button
+                id="sendBtn"
+                type="button">
+                ➤
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+<script src="js/chat.js"></script>
+
+</body>
+</html>
