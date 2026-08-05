@@ -1,11 +1,13 @@
-require("dotenv").config();
-const express = require("express");
+require("dotenv").config(); // Should be at line 1
+const express = require("express"); // Declare express ONLY ONCE
 const mongoose = require("mongoose");
+const cors = require("cors");
 
-// Rest of your server code...
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-const express = require("express");
-
+// Your routes and server listener continue below...
 
 
 const cors = require("cors");
