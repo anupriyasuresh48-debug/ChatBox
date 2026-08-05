@@ -1,16 +1,14 @@
-require("dotenv").config(); // Should be at line 1
-const express = require("express"); // Declare express ONLY ONCE
+require("dotenv").config();
+const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-// Your routes and server listener continue below...
-
-
-const cors = require("cors");
+// Rest of your routes and server.listen() code below...
 const bcrypt = require("bcrypt");
 const http = require("http");
 const path = require("path");
