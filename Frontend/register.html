@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - ChatBox</title>
 
+    <!-- Correct relative path to CSS inside Frontend/css/ directory -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -18,6 +19,9 @@
 
     <p>Join ChatBox and start chatting!</p>
 
+    <!-- Dynamic feedback message container -->
+    <div id="errorMessage" style="color: #ff4d4d; margin-bottom: 15px; font-weight: bold;"></div>
+
     <form id="registerForm">
 
         <input
@@ -25,6 +29,7 @@
             id="name"
             placeholder="👤 Full Name"
             required
+            autocomplete="name"
         >
 
         <input
@@ -32,6 +37,7 @@
             id="username"
             placeholder="😊 Username"
             required
+            autocomplete="username"
         >
 
         <input
@@ -39,6 +45,7 @@
             id="email"
             placeholder="📧 Email"
             required
+            autocomplete="email"
         >
 
         <input
@@ -46,6 +53,7 @@
             id="password"
             placeholder="🔒 Password"
             required
+            autocomplete="new-password"
         >
 
         <input
@@ -53,21 +61,80 @@
             id="confirmPassword"
             placeholder="🔒 Confirm Password"
             required
+            autocomplete="new-password"
         >
 
-        <button type="submit">
+        <button type="submit" id="registerBtn">
             🚀 Create Account
         </button>
 
     </form>
 
-    <p class="bottom-text">
+    <p class="bottom-text" style="margin-top: 15px;">
         Already have an account?
         <a href="login.html">Login</a>
     </p>
 
 </div>
 
+<!-- Account Registration Logic -->
+<script>
+    const registerForm = document.getElementById("registerForm");
+    const errorContainer = document.getElementById("errorMessage");
+
+    // Dynamic backend URL configuration for local and deployed environments
+    const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+        ? "http://localhost:3000"
+        : "https://chatbox.onrender.com";
+
+    registerForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById("name").value.trim();
+        const username = document.getElementById("username").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+
+        // Check if passwords match
+        if (password !== confirmPassword) {
+            errorContainer.style.color = "#ff4d4d";
+            errorContainer.innerText = "Passwords do not match!";
+            return;
+        }
+
+        errorContainer.style.color = "#ff4d4d";
+        errorContainer.innerText = "Creating account...";
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/register`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ name, username, email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                errorContainer.style.color = "#28a745";
+                errorContainer.innerText = "Account created successfully! Redirecting to login...";
+
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 1500);
+            } else {
+                errorContainer.innerText = data.message || "Registration failed. Please try again.";
+            }
+        } catch (error) {
+            console.error("Registration Error:", error);
+            errorContainer.innerText = "Unable to connect to server. Please try again later.";
+        }
+    });
+</script>
+
+<!-- External JS link inside Frontend/js/ directory -->
 <script src="js/register.js"></script>
 
 </body>
