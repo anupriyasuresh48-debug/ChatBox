@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - ChatBox</title>
 
+    <!-- Correct relative path to CSS inside Frontend/css/ directory -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -18,6 +19,9 @@
 
     <p>Login to continue chatting</p>
 
+    <!-- Message box for real-time error or success alerts -->
+    <div id="errorMessage" style="color: #ff4d4d; margin-bottom: 15px; font-weight: bold;"></div>
+
     <form id="loginForm">
 
         <input
@@ -25,6 +29,7 @@
             id="email"
             placeholder="📧 Email"
             required
+            autocomplete="email"
         >
 
         <input
@@ -32,16 +37,73 @@
             id="password"
             placeholder="🔒 Password"
             required
+            autocomplete="current-password"
         >
 
-        <button type="submit">
+        <button type="submit" id="loginBtn">
             🚀 Login
         </button>
 
     </form>
 
+    <div class="footer-link" style="margin-top: 15px;">
+        <p>Don't have an account? <a href="register.html">Register here</a></p>
+    </div>
+
 </div>
 
+<!-- Authentication & API logic -->
+<script>
+    const loginForm = document.getElementById("loginForm");
+    const errorContainer = document.getElementById("errorMessage");
+
+    // Dynamic backend URL configuration for local and deployed environments
+    const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+        ? "http://localhost:3000"
+        : "https://chatbox.onrender.com";
+
+    loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        errorContainer.style.color = "#ff4d4d";
+        errorContainer.innerText = "Authenticating...";
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Save user details & token to local storage
+                localStorage.setItem("token", data.token || "");
+                localStorage.setItem("username", data.username || email.split('@')[0]);
+
+                errorContainer.style.color = "#28a745";
+                errorContainer.innerText = "Login successful! Redirecting...";
+
+                setTimeout(() => {
+                    window.location.href = "home.html";
+                }, 1000);
+            } else {
+                errorContainer.innerText = data.message || "Invalid credentials. Please try again.";
+            }
+        } catch (error) {
+            console.error("Login Error:", error);
+            errorContainer.innerText = "Unable to connect to server. Please try again later.";
+        }
+    });
+</script>
+
+<!-- External JS link inside Frontend/js/ directory -->
 <script src="js/login.js"></script>
 
 </body>
