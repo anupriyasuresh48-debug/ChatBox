@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatBox - Home</title>
 
+    <!-- Correct relative path to Frontend/css/ directory -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -12,76 +13,86 @@
 <div class="home-container">
 
     <!-- Header -->
-
     <div class="header">
-
         <h2>🌈 ChatBox</h2>
-
         <div class="profile">
-
-            👤 Anu
-
+            <span id="userDisplayName">👤 Guest</span>
+            <button id="logoutBtn" style="margin-left: 10px; cursor: pointer;">Logout</button>
         </div>
-
     </div>
 
     <!-- Search -->
-
     <div class="search-box">
-
-        <input type="text" placeholder="🔍 Search Friends...">
-
+        <input type="text" id="searchInput" placeholder="🔍 Search Friends...">
     </div>
 
     <!-- Friend List -->
+    <div class="friend-list" id="friendList">
 
-    <div class="friend-list">
-
-        <div class="friend-card">
-
+        <div class="friend-card" data-username="Alice" onclick="openChat('Alice')">
             <div class="avatar">😊</div>
-
             <div>
-
                 <h3>Alice</h3>
-
-                <p>Online</p>
-
+                <p class="status online">🟢 Online</p>
             </div>
-
         </div>
 
-        <div class="friend-card">
-
+        <div class="friend-card" data-username="Bob" onclick="openChat('Bob')">
             <div class="avatar">😎</div>
-
             <div>
-
                 <h3>Bob</h3>
-
-                <p>Offline</p>
-
+                <p class="status offline">⚪ Offline</p>
             </div>
-
         </div>
 
-        <div class="friend-card">
-
+        <div class="friend-card" data-username="Charlie" onclick="openChat('Charlie')">
             <div class="avatar">🤖</div>
-
             <div>
-
                 <h3>Charlie</h3>
-
-                <p>Online</p>
-
+                <p class="status online">🟢 Online</p>
             </div>
-
         </div>
 
     </div>
 
 </div>
+
+<!-- Inline JavaScript for Navigation & Search Interactivity -->
+<script>
+    // 1. Display logged in user
+    const username = localStorage.getItem("username") || "Anu";
+    document.getElementById("userDisplayName").innerText = `👤 ${username}`;
+
+    // 2. Redirect to chat page with selected friend
+    function openChat(friendName) {
+        window.location.href = `chat.html?user=${encodeURIComponent(friendName)}`;
+    }
+
+    // 3. Search filter functionality
+    const searchInput = document.getElementById("searchInput");
+    searchInput.addEventListener("input", function (e) {
+        const query = e.target.value.toLowerCase();
+        const cards = document.querySelectorAll(".friend-card");
+
+        cards.forEach(card => {
+            const name = card.getAttribute("data-username").toLowerCase();
+            if (name.includes(query)) {
+                card.style.display = "flex";
+            } else {
+                card.style.display = "none";
+            }
+        });
+    });
+
+    // 4. Handle Logout
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        window.location.href = "login.html";
+    });
+</script>
+
+<!-- Link to external JS inside Frontend/js/ directory -->
 <script src="js/script.js"></script>
 
 </body>
