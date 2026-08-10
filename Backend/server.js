@@ -13,23 +13,17 @@ const Message = require("./models/Message");
 const app = express();
 const server = http.createServer(app);
 
-// Use Render's assigned port or default to 3000 locally
 const PORT = process.env.PORT || 3000;
 
-// ======================
-// Connect MongoDB
-// ======================
+// Connect to MongoDB
 connectDB();
 
-// ======================
-// Middleware
-// ======================
+// Global Middleware
 app.use(cors());
 app.use(express.json());
 
-// Serve Static Frontend Files
+// Serve static frontend assets
 app.use(express.static(path.join(__dirname, "../Frontend")));
-
 // ======================
 // Socket.IO Setup
 // ======================
