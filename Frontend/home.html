@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatBox - Home</title>
 
-    <!-- Correct relative path to Frontend/css/ directory -->
+    <!-- Relative path to CSS inside Frontend/css/ directory -->
     <link rel="stylesheet" href="css/style.css">
 
     <!-- Auth Guard: Redirect if not logged in -->
@@ -34,7 +34,7 @@
         <input type="text" id="searchInput" placeholder="🔍 Search Friends...">
     </div>
 
-    <!-- Friend List (Populated dynamically) -->
+    <!-- Friend List (Populated dynamically from backend API) -->
     <div class="friend-list" id="friendList">
         <p style="text-align: center; color: #888;">Loading users...</p>
     </div>
@@ -44,17 +44,17 @@
 <!-- Navigation, Search & Dynamic User Loading -->
 <script>
     // Environment detection for backend requests
-    // REPLACE 'YOUR-ACTUAL-RENDER-BACKEND-NAME' with your real backend link on Render
+    // REPLACE 'YOUR-ACTUAL-RENDER-BACKEND-NAME' with your real backend service link on Render
     const BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
         ? "http://localhost:3000"
         : "https://YOUR-ACTUAL-RENDER-BACKEND-NAME.onrender.com";
 
-    // 1. Parse and display logged-in user details safely
+    // 1. Parse and display logged-in user details
     const currentUserData = JSON.parse(localStorage.getItem("user") || "{}");
     const currentUsername = currentUserData.username || currentUserData.name || "User";
     document.getElementById("userDisplayName").innerText = `👤 ${currentUsername}`;
 
-    // 2. Fetch users dynamically from Render backend
+    // 2. Fetch users dynamically from backend
     async function loadUsers() {
         const friendList = document.getElementById("friendList");
         try {
@@ -94,12 +94,12 @@
         }
     }
 
-    // 3. Redirect to chat page
+    // 3. Redirect to chat page with selected user
     function openChat(friendName) {
         window.location.href = `chat.html?user=${encodeURIComponent(friendName)}`;
     }
 
-    // 4. Filter search functionality
+    // 4. Search filter functionality
     const searchInput = document.getElementById("searchInput");
     searchInput.addEventListener("input", function (e) {
         const query = e.target.value.toLowerCase();

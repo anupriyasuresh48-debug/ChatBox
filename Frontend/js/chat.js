@@ -2,7 +2,6 @@ console.log("✅ chat.js loaded");
 let selectedUser = null;
 
 // Dynamic backend URL configuration for local and deployed environments
-// REPLACE 'YOUR-ACTUAL-RENDER-BACKEND-NAME' with your real backend service link on Render
 const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
     ? "http://localhost:3000"
     : "https://chatbox-jibs.onrender.com";
