@@ -13,17 +13,23 @@ const Message = require("./models/Message");
 const app = express();
 const server = http.createServer(app);
 
+// Use Render's assigned port or default to 3000 locally
 const PORT = process.env.PORT || 3000;
 
-// Connect to MongoDB
+// ======================
+// Connect MongoDB
+// ======================
 connectDB();
 
-// Global Middleware
+// ======================
+// Middleware
+// ======================
 app.use(cors());
 app.use(express.json());
 
-// Serve static frontend assets
+// Serve Static Frontend Files
 app.use(express.static(path.join(__dirname, "../Frontend")));
+
 // ======================
 // Socket.IO Setup
 // ======================
@@ -38,16 +44,16 @@ const io = new Server(server, {
 // Socket.IO Connection
 // ======================
 io.on("connection", (socket) => {
-    console.log("🟢 User Connected");
+    console.log("🟢 User Connected:", socket.id);
 
     socket.on("join", (username) => {
         socket.join(username);
-        console.log(`${username} joined`);
+        console.log(`👤 ${username} joined room`);
     });
 
     socket.on("send-message", async (data) => {
         try {
-            console.log("Message:", data);
+            console.log("💬 Message received:", data);
 
             const newMessage = new Message({
                 sender: data.sender,
@@ -57,10 +63,11 @@ io.on("connection", (socket) => {
 
             await newMessage.save();
 
+            // Emit to receiver and echo back to sender
             io.to(data.receiver).emit("receive-message", data);
             io.to(data.sender).emit("receive-message", data);
         } catch (error) {
-            console.error("Socket Message Save Error:", error);
+            console.error("❌ Socket Message Save Error:", error);
         }
     });
 
@@ -202,7 +209,7 @@ app.get("/messages/:sender/:receiver", async (req, res) => {
 });
 
 // ======================
-// Wildcard Static Fallback (Express 5 Safe)
+// Static Fallback Routing (Express 5 Safe)
 // ======================
 app.use((req, res) => {
     res.sendFile(path.join(__dirname, "../Frontend/index.html"));
@@ -212,5 +219,5 @@ app.use((req, res) => {
 // Start Server
 // ======================
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`🚀 Server is running on port ${PORT}`);
 });
