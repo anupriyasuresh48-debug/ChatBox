@@ -6,15 +6,20 @@
     <title>ChatBox - Welcome</title>
 
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- Auto-Redirect if user is already logged in -->
+    <script>
+        if (localStorage.getItem("user")) {
+            window.location.href = "home.html";
+        }
+    </script>
 </head>
 
 <body>
 
     <div class="container">
 
-        <div class="logo">
-            💬
-        </div>
+        <div class="logo">💬</div>
 
         <h1>ChatBox</h1>
 
@@ -27,8 +32,6 @@
         <button id="registerBtn" onclick="window.location.href='register.html'">Register</button>
 
     </div>
-
-    <script src="js/script.js"></script>
 
 </body>
 </html>

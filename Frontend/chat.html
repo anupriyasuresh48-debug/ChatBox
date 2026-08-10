@@ -8,6 +8,13 @@
     <!-- Pointing to Frontend/css/ folder -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/chat.css">
+
+    <!-- Auth Guard: Redirect unauthenticated users immediately -->
+    <script>
+        if (!localStorage.getItem("user")) {
+            window.location.href = "login.html";
+        }
+    </script>
 </head>
 
 <body>
@@ -51,8 +58,8 @@
 <!-- CDN for Socket.io -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
-<!-- Pointing to Frontend/js/ folder -->
-<script src="js/chat.js"></script>
+<!-- Main chat logic -->
+<script src="js/chat.js" defer></script>
 
 </body>
 </html>

@@ -7,6 +7,14 @@
 
     <!-- Correct relative path to Frontend/css/ directory -->
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- Auth Guard: Redirect if not logged in -->
+    <script>
+        const storedUser = localStorage.getItem("user");
+        if (!storedUser) {
+            window.location.href = "login.html";
+        }
+    </script>
 </head>
 <body>
 
@@ -26,49 +34,72 @@
         <input type="text" id="searchInput" placeholder="🔍 Search Friends...">
     </div>
 
-    <!-- Friend List -->
+    <!-- Friend List (Populated dynamically) -->
     <div class="friend-list" id="friendList">
-
-        <div class="friend-card" data-username="Alice" onclick="openChat('Alice')">
-            <div class="avatar">😊</div>
-            <div>
-                <h3>Alice</h3>
-                <p class="status online">🟢 Online</p>
-            </div>
-        </div>
-
-        <div class="friend-card" data-username="Bob" onclick="openChat('Bob')">
-            <div class="avatar">😎</div>
-            <div>
-                <h3>Bob</h3>
-                <p class="status offline">⚪ Offline</p>
-            </div>
-        </div>
-
-        <div class="friend-card" data-username="Charlie" onclick="openChat('Charlie')">
-            <div class="avatar">🤖</div>
-            <div>
-                <h3>Charlie</h3>
-                <p class="status online">🟢 Online</p>
-            </div>
-        </div>
-
+        <p style="text-align: center; color: #888;">Loading users...</p>
     </div>
 
 </div>
 
-<!-- Inline JavaScript for Navigation & Search Interactivity -->
+<!-- Navigation, Search & Dynamic User Loading -->
 <script>
-    // 1. Display logged in user
-    const username = localStorage.getItem("username") || "Anu";
-    document.getElementById("userDisplayName").innerText = `👤 ${username}`;
+    // Environment detection for backend requests
+    // REPLACE 'YOUR-ACTUAL-RENDER-BACKEND-NAME' with your real backend link on Render
+    const BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+        ? "http://localhost:3000"
+        : "https://YOUR-ACTUAL-RENDER-BACKEND-NAME.onrender.com";
 
-    // 2. Redirect to chat page with selected friend
+    // 1. Parse and display logged-in user details safely
+    const currentUserData = JSON.parse(localStorage.getItem("user") || "{}");
+    const currentUsername = currentUserData.username || currentUserData.name || "User";
+    document.getElementById("userDisplayName").innerText = `👤 ${currentUsername}`;
+
+    // 2. Fetch users dynamically from Render backend
+    async function loadUsers() {
+        const friendList = document.getElementById("friendList");
+        try {
+            const response = await fetch(`${BASE_URL}/users`);
+            const users = await response.json();
+
+            friendList.innerHTML = "";
+
+            if (!users || users.length === 0) {
+                friendList.innerHTML = "<p style='text-align: center;'>No other users found.</p>";
+                return;
+            }
+
+            users.forEach(user => {
+                // Skip rendering the currently logged in user
+                if (user.username === currentUsername) return;
+
+                const card = document.createElement("div");
+                card.className = "friend-card";
+                card.setAttribute("data-username", user.username);
+                card.style.display = "flex";
+                card.style.cursor = "pointer";
+                card.onclick = () => openChat(user.username);
+
+                card.innerHTML = `
+                    <div class="avatar">😊</div>
+                    <div>
+                        <h3>${user.username}</h3>
+                        <p class="status online">🟢 Online</p>
+                    </div>
+                `;
+                friendList.appendChild(card);
+            });
+        } catch (error) {
+            console.error("Failed to load users:", error);
+            friendList.innerHTML = "<p style='text-align: center; color: red;'>Unable to load users. Server may be sleeping.</p>";
+        }
+    }
+
+    // 3. Redirect to chat page
     function openChat(friendName) {
         window.location.href = `chat.html?user=${encodeURIComponent(friendName)}`;
     }
 
-    // 3. Search filter functionality
+    // 4. Filter search functionality
     const searchInput = document.getElementById("searchInput");
     searchInput.addEventListener("input", function (e) {
         const query = e.target.value.toLowerCase();
@@ -76,24 +107,20 @@
 
         cards.forEach(card => {
             const name = card.getAttribute("data-username").toLowerCase();
-            if (name.includes(query)) {
-                card.style.display = "flex";
-            } else {
-                card.style.display = "none";
-            }
+            card.style.display = name.includes(query) ? "flex" : "none";
         });
     });
 
-    // 4. Handle Logout
+    // 5. Handle Logout
     document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem("user");
         localStorage.removeItem("token");
-        localStorage.removeItem("username");
         window.location.href = "login.html";
     });
-</script>
 
-<!-- Link to external JS inside Frontend/js/ directory -->
-<script src="js/script.js"></script>
+    // Run initial user list fetch
+    loadUsers();
+</script>
 
 </body>
 </html>

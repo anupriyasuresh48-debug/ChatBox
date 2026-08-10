@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - ChatBox</title>
 
-    <!-- Correct relative path to CSS inside Frontend/css/ directory -->
+    <!-- Relative path to CSS inside Frontend/css/ directory -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -83,9 +83,10 @@
     const errorContainer = document.getElementById("errorMessage");
 
     // Dynamic backend URL configuration for local and deployed environments
+    // REPLACE 'YOUR-ACTUAL-RENDER-BACKEND-NAME' with your real backend link from Render
     const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
         ? "http://localhost:3000"
-        : "https://chatbox.onrender.com";
+        : "https://chatbox-jibs.onrender.com";
 
     registerForm.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -133,9 +134,6 @@
         }
     });
 </script>
-
-<!-- External JS link inside Frontend/js/ directory -->
-<script src="js/register.js"></script>
 
 </body>
 </html>

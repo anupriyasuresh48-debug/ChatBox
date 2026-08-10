@@ -6,9 +6,10 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     if (submitBtn) submitBtn.disabled = true;
 
     // Detect environment dynamically (uses Render in production, localhost in development)
+    // REPLACE 'YOUR-ACTUAL-RENDER-BACKEND-NAME' with your real backend link from Render
     const BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
         ? "http://localhost:3000"
-        : "https://chatbox.onrender.com";
+        : "https://chatbox-jibs.onrender.com";
 
     const user = {
         email: document.getElementById("email").value.trim(),
@@ -16,6 +17,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     };
 
     try {
+        // Double check if your backend route is '/login' or '/api/login'
         const response = await fetch(`${BASE_URL}/login`, {
             method: "POST",
             headers: {
