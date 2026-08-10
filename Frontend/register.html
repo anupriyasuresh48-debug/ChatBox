@@ -7,23 +7,29 @@
 
     <!-- Relative path to CSS inside Frontend/css/ directory -->
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- Auto-Redirect if user is already logged in -->
+    <script>
+        if (localStorage.getItem("user")) {
+            window.location.href = "home.html";
+        }
+    </script>
 </head>
 
 <body>
 
 <div class="container">
 
-    <div class="logo">🌈</div>
+    <div class="logo">💬</div>
 
     <h1>Create Account</h1>
 
-    <p>Join ChatBox and start chatting!</p>
+    <p>Sign up to start chatting with friends</p>
 
-    <!-- Dynamic feedback message container -->
-    <div id="errorMessage" style="color: #ff4d4d; margin-bottom: 15px; font-weight: bold;"></div>
+    <!-- Message box for real-time error or success alerts -->
+    <div id="errorMessage" style="color: #ff4d4d; margin-bottom: 15px; font-weight: bold; min-height: 20px;"></div>
 
     <form id="registerForm">
-
         <input
             type="text"
             id="name"
@@ -35,7 +41,7 @@
         <input
             type="text"
             id="username"
-            placeholder="😊 Username"
+            placeholder="🏷️ Username"
             required
             autocomplete="username"
         >
@@ -56,84 +62,19 @@
             autocomplete="new-password"
         >
 
-        <input
-            type="password"
-            id="confirmPassword"
-            placeholder="🔒 Confirm Password"
-            required
-            autocomplete="new-password"
-        >
-
         <button type="submit" id="registerBtn">
-            🚀 Create Account
+            🎉 Register
         </button>
-
     </form>
 
-    <p class="bottom-text" style="margin-top: 15px;">
-        Already have an account?
-        <a href="login.html">Login</a>
-    </p>
+    <div class="footer-link" style="margin-top: 15px;">
+        <p>Already have an account? <a href="login.html">Login here</a></p>
+    </div>
 
 </div>
 
-<!-- Account Registration Logic -->
-<script>
-    const registerForm = document.getElementById("registerForm");
-    const errorContainer = document.getElementById("errorMessage");
-
-    // Dynamic backend URL configuration for local and deployed environments
-    // REPLACE 'YOUR-ACTUAL-RENDER-BACKEND-NAME' with your real backend link from Render
-    const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-        ? "http://localhost:3000"
-        : "https://chatbox-jibs.onrender.com";
-
-    registerForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const name = document.getElementById("name").value.trim();
-        const username = document.getElementById("username").value.trim();
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
-        const confirmPassword = document.getElementById("confirmPassword").value;
-
-        // Check if passwords match
-        if (password !== confirmPassword) {
-            errorContainer.style.color = "#ff4d4d";
-            errorContainer.innerText = "Passwords do not match!";
-            return;
-        }
-
-        errorContainer.style.color = "#ff4d4d";
-        errorContainer.innerText = "Creating account...";
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/register`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ name, username, email, password })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                errorContainer.style.color = "#28a745";
-                errorContainer.innerText = "Account created successfully! Redirecting to login...";
-
-                setTimeout(() => {
-                    window.location.href = "login.html";
-                }, 1500);
-            } else {
-                errorContainer.innerText = data.message || "Registration failed. Please try again.";
-            }
-        } catch (error) {
-            console.error("Registration Error:", error);
-            errorContainer.innerText = "Unable to connect to server. Please try again later.";
-        }
-    });
-</script>
+<!-- External JS link inside Frontend/js/ directory -->
+<script src="js/register.js" defer></script>
 
 </body>
 </html>
