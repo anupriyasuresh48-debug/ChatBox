@@ -206,8 +206,10 @@ app.get("/messages/:sender/:receiver", async (req, res) => {
     }
 });
 
-// CORRECT (express 5 / path-to-regexp v8 syntax)
-app.get("/:splat*", (req, res) => {
+// ======================
+// Wildcard Static Fallback (Express 5 Safe)
+// ======================
+app.use((req, res) => {
     res.sendFile(path.join(__dirname, "../Frontend/index.html"));
 });
 
