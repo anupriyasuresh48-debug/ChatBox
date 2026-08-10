@@ -6,7 +6,6 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     if (submitBtn) submitBtn.disabled = true;
 
     // Detect environment dynamically (uses Render in production, localhost in development)
-    // REPLACE 'YOUR-ACTUAL-RENDER-BACKEND-NAME' with your real backend service link on Render
     const BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
         ? "http://localhost:3000"
         : "https://chatbox-jibs.onrender.com";
@@ -19,7 +18,6 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     };
 
     try {
-        // Verify whether your backend route is '/register' or '/api/register'
         const response = await fetch(`${BASE_URL}/register`, {
             method: "POST",
             headers: {
@@ -30,7 +28,7 @@ document.getElementById("registerForm").addEventListener("submit", async functio
 
         const data = await response.json();
 
-        if (response.ok) {
+        if (response.ok && data.success) {
             alert(data.message || "Account created successfully! 🎉");
             window.location.href = "login.html";
         } else {
