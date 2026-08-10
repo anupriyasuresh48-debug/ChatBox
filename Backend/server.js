@@ -207,9 +207,9 @@ app.get("/messages/:sender/:receiver", async (req, res) => {
 });
 
 // ======================
-// Wildcard Static Fallback
+// Wildcard Static Fallback (Express 5 Syntax)
 // ======================
-app.get("*", (req, res) => {
+app.get("(.*)", (req, res) => {
     res.sendFile(path.join(__dirname, "../Frontend/index.html"));
 });
 
