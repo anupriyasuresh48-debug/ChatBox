@@ -26,14 +26,8 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-// ======================
-// Serve Frontend
-// ======================
+// Serve Static Frontend Files
 app.use(express.static(path.join(__dirname, "../Frontend")));
-
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "../Frontend/index.html"));
-});
 
 // ======================
 // Socket.IO Setup
@@ -71,7 +65,7 @@ io.on("connection", (socket) => {
             io.to(data.receiver).emit("receive-message", data);
             io.to(data.sender).emit("receive-message", data);
         } catch (error) {
-            console.log(error);
+            console.error("Socket Message Save Error:", error);
         }
     });
 
@@ -89,7 +83,7 @@ app.post("/register", async (req, res) => {
         const existingUser = await User.findOne({ email });
 
         if (existingUser) {
-            return res.json({
+            return res.status(400).json({
                 success: false,
                 message: "Email already exists!"
             });
@@ -105,12 +99,12 @@ app.post("/register", async (req, res) => {
 
         await newUser.save();
 
-        res.json({
+        res.status(201).json({
             success: true,
             message: "User registered successfully 🎉"
         });
     } catch (error) {
-        console.log(error);
+        console.error("Registration Error:", error);
         res.status(500).json({
             success: false,
             message: "Server Error"
@@ -127,7 +121,7 @@ app.post("/login", async (req, res) => {
         const user = await User.findOne({ email });
 
         if (!user) {
-            return res.json({
+            return res.status(400).json({
                 success: false,
                 message: "User not found!"
             });
@@ -136,7 +130,7 @@ app.post("/login", async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return res.json({
+            return res.status(400).json({
                 success: false,
                 message: "Incorrect password!"
             });
@@ -152,7 +146,7 @@ app.post("/login", async (req, res) => {
             }
         });
     } catch (error) {
-        console.log(error);
+        console.error("Login Error:", error);
         res.status(500).json({
             success: false,
             message: "Server Error"
@@ -168,7 +162,7 @@ app.get("/users", async (req, res) => {
         const users = await User.find({}, "-password");
         res.json(users);
     } catch (error) {
-        console.log(error);
+        console.error("Get Users Error:", error);
         res.status(500).json({
             message: "Server Error"
         });
@@ -183,7 +177,7 @@ app.get("/messages", async (req, res) => {
         const messages = await Message.find().sort({ createdAt: 1 });
         res.json(messages);
     } catch (error) {
-        console.log(error);
+        console.error("Get Messages Error:", error);
         res.status(500).json({
             message: "Server Error"
         });
@@ -205,11 +199,18 @@ app.get("/messages/:sender/:receiver", async (req, res) => {
 
         res.json(messages);
     } catch (error) {
-        console.log(error);
+        console.error("Get Conversation Error:", error);
         res.status(500).json({
             message: "Server Error"
         });
     }
+});
+
+// ======================
+// Wildcard Static Fallback
+// ======================
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../Frontend/index.html"));
 });
 
 // ======================
