@@ -28,15 +28,13 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-// ======================
-// Resolve Frontend Path reliably on Render Linux
-// ======================
+// Check both possible locations automatically
 const frontendPath = fs.existsSync(path.join(__dirname, "../Frontend"))
-    ? path.join(__dirname, "../Frontend")
-    : path.join(__dirname, "Frontend");
+    ? path.join(__dirname, "../Frontend")  // Scenario A: Folders are side-by-side
+    : path.join(__dirname, "Frontend");    // Scenario B: Render root configuration
 
+// Now serve the frontend safely from whichever path was found
 app.use(express.static(frontendPath));
-
 // ======================
 // Socket.IO Setup
 // ======================
