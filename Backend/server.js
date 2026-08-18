@@ -1,11 +1,3 @@
-const frontendPath = path.join(__dirname, "../Frontend");
-
-app.use(express.static(frontendPath));
-
-app.get("/", (req, res) => {
-    res.sendFile(path.join(frontendPath, "index.html"));
-});
-
 require("dotenv").config();
 
 const express = require("express");
@@ -23,30 +15,73 @@ const Message = require("./models/Message");
 const app = express();
 const server = http.createServer(app);
 
-// Use Render's assigned port or default to 3000 locally
+// ======================
+// PORT
+// ======================
 const PORT = process.env.PORT || 3000;
 
 // ======================
-// Connect MongoDB
+// CONNECT DATABASE
 // ======================
 connectDB();
 
 // ======================
-// Middleware
+// MIDDLEWARE
 // ======================
 app.use(cors());
 app.use(express.json());
 
-// Check both possible locations automatically
-const frontendPath = fs.existsSync(path.join(__dirname, "../Frontend"))
-    ? path.join(__dirname, "../Frontend")  // Scenario A: Folders are side-by-side
-    : path.join(__dirname, "Frontend");    // Scenario B: Render root configuration
+// ======================
+// FIND FRONTEND
+// ======================
 
-// Now serve the frontend safely from whichever path was found
+const possibleFrontendPaths = [
+    path.join(__dirname, "../Frontend"),
+    path.join(__dirname, "Frontend"),
+    path.join(process.cwd(), "Frontend"),
+    path.join(process.cwd(), "../Frontend")
+];
+
+const frontendPath = possibleFrontendPaths.find((folderPath) =>
+    fs.existsSync(folderPath)
+);
+
+if (!frontendPath) {
+    console.error("❌ Frontend folder not found!");
+    console.error("Checked these locations:");
+
+    possibleFrontendPaths.forEach((folderPath) => {
+        console.error("   " + folderPath);
+    });
+
+    process.exit(1);
+}
+
+console.log("✅ Frontend found at:");
+console.log(frontendPath);
+
+// ======================
+// SERVE FRONTEND
+// ======================
+
 app.use(express.static(frontendPath));
+
+app.get("/", (req, res) => {
+
+    const indexPath = path.join(frontendPath, "index.html");
+
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(404).send("❌ index.html not found");
+    }
+
+});
+
 // ======================
-// Socket.IO Setup
+// SOCKET.IO
 // ======================
+
 const io = new Server(server, {
     cors: {
         origin: "*",
@@ -54,188 +89,434 @@ const io = new Server(server, {
     }
 });
 
-// ======================
-// Socket.IO Connection
-// ======================
 io.on("connection", (socket) => {
+
     console.log("🟢 User Connected:", socket.id);
 
+    // ======================
+    // JOIN USER ROOM
+    // ======================
+
     socket.on("join", (username) => {
+
+        if (!username) return;
+
         socket.join(username);
+
         console.log(`👤 ${username} joined room`);
+
     });
 
+    // ======================
+    // SEND MESSAGE
+    // ======================
+
     socket.on("send-message", async (data) => {
+
         try {
+
             console.log("💬 Message received:", data);
 
+            if (
+                !data.sender ||
+                !data.receiver ||
+                !data.message
+            ) {
+                console.log("❌ Invalid message data");
+                return;
+            }
+
             const newMessage = new Message({
+
                 sender: data.sender,
+
                 receiver: data.receiver,
+
                 message: data.message
+
             });
 
             await newMessage.save();
 
-            io.to(data.receiver).emit("receive-message", data);
-            io.to(data.sender).emit("receive-message", data);
+            // Send to receiver
+            io.to(data.receiver).emit(
+                "receive-message",
+                data
+            );
+
+            // Send to sender
+            io.to(data.sender).emit(
+                "receive-message",
+                data
+            );
+
         } catch (error) {
-            console.error("❌ Socket Message Save Error:", error);
+
+            console.error(
+                "❌ Socket Message Error:",
+                error
+            );
+
         }
+
     });
 
+    // ======================
+    // DISCONNECT
+    // ======================
+
     socket.on("disconnect", () => {
-        console.log("🔴 User Disconnected");
+
+        console.log(
+            "🔴 User Disconnected:",
+            socket.id
+        );
+
     });
+
 });
 
 // ======================
-// Register API
+// REGISTER
 // ======================
+
 app.post("/register", async (req, res) => {
+
     try {
-        const { name, username, email, password } = req.body;
-        const existingUser = await User.findOne({ email });
 
-        if (existingUser) {
-            return res.status(400).json({
-                success: false,
-                message: "Email already exists!"
-            });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({
+        const {
             name,
             username,
             email,
+            password
+        } = req.body;
+
+        if (
+            !name ||
+            !username ||
+            !email ||
+            !password
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required!"
+            });
+
+        }
+
+        const existingUser = await User.findOne({
+            email
+        });
+
+        if (existingUser) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message: "Email already exists!"
+
+            });
+
+        }
+
+        const existingUsername =
+            await User.findOne({ username });
+
+        if (existingUsername) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message: "Username already exists!"
+
+            });
+
+        }
+
+        const hashedPassword =
+            await bcrypt.hash(password, 10);
+
+        const newUser = new User({
+
+            name,
+
+            username,
+
+            email,
+
             password: hashedPassword
+
         });
 
         await newUser.save();
 
         res.status(201).json({
+
             success: true,
-            message: "User registered successfully 🎉"
+
+            message:
+                "User registered successfully 🎉"
+
         });
+
     } catch (error) {
-        console.error("Registration Error:", error);
+
+        console.error(
+            "❌ Registration Error:",
+            error
+        );
+
         res.status(500).json({
+
             success: false,
+
             message: "Server Error"
+
         });
+
     }
+
 });
 
 // ======================
-// Login API
+// LOGIN
 // ======================
+
 app.post("/login", async (req, res) => {
+
     try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
+
+        const {
+            email,
+            password
+        } = req.body;
+
+        const user = await User.findOne({
+            email
+        });
 
         if (!user) {
+
             return res.status(400).json({
+
                 success: false,
+
                 message: "User not found!"
+
             });
+
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch =
+            await bcrypt.compare(
+                password,
+                user.password
+            );
 
         if (!isMatch) {
+
             return res.status(400).json({
+
                 success: false,
+
                 message: "Incorrect password!"
+
             });
+
         }
 
         res.json({
+
             success: true,
+
             message: "Login Successful 🎉",
+
             user: {
+
                 name: user.name,
+
                 username: user.username,
+
                 email: user.email
+
             }
+
         });
+
     } catch (error) {
-        console.error("Login Error:", error);
+
+        console.error(
+            "❌ Login Error:",
+            error
+        );
+
         res.status(500).json({
+
             success: false,
+
             message: "Server Error"
+
         });
+
     }
+
 });
 
 // ======================
-// Get Users
+// GET USERS
 // ======================
+
 app.get("/users", async (req, res) => {
+
     try {
-        const users = await User.find({}, "-password");
+
+        const users =
+            await User.find({}, "-password");
+
         res.json(users);
+
     } catch (error) {
-        console.error("Get Users Error:", error);
+
+        console.error(
+            "❌ Get Users Error:",
+            error
+        );
+
         res.status(500).json({
+
             message: "Server Error"
+
         });
+
     }
+
 });
 
 // ======================
-// Get All Messages
+// GET ALL MESSAGES
 // ======================
+
 app.get("/messages", async (req, res) => {
+
     try {
-        const messages = await Message.find().sort({ createdAt: 1 });
+
+        const messages =
+            await Message.find()
+                .sort({ createdAt: 1 });
+
         res.json(messages);
+
     } catch (error) {
-        console.error("Get Messages Error:", error);
+
+        console.error(
+            "❌ Get Messages Error:",
+            error
+        );
+
         res.status(500).json({
+
             message: "Server Error"
+
         });
+
     }
+
 });
 
 // ======================
-// Get Conversation
+// GET CONVERSATION
 // ======================
-app.get("/messages/:sender/:receiver", async (req, res) => {
-    try {
-        const { sender, receiver } = req.params;
-        const messages = await Message.find({
-            $or: [
-                { sender: sender, receiver: receiver },
-                { sender: receiver, receiver: sender }
-            ]
-        }).sort({ createdAt: 1 });
 
-        res.json(messages);
-    } catch (error) {
-        console.error("Get Conversation Error:", error);
-        res.status(500).json({
-            message: "Server Error"
-        });
+app.get(
+    "/messages/:sender/:receiver",
+    async (req, res) => {
+
+        try {
+
+            const {
+                sender,
+                receiver
+            } = req.params;
+
+            const messages =
+                await Message.find({
+
+                    $or: [
+
+                        {
+                            sender: sender,
+                            receiver: receiver
+                        },
+
+                        {
+                            sender: receiver,
+                            receiver: sender
+                        }
+
+                    ]
+
+                }).sort({
+                    createdAt: 1
+                });
+
+            res.json(messages);
+
+        } catch (error) {
+
+            console.error(
+                "❌ Get Conversation Error:",
+                error
+            );
+
+            res.status(500).json({
+
+                message: "Server Error"
+
+            });
+
+        }
+
     }
-});
+);
 
 // ======================
-// Fallback Route for Single Page App
+// FRONTEND FALLBACK
 // ======================
+
 app.use((req, res) => {
-    const indexPath = path.join(frontendPath, "index.html");
+
+    const indexPath =
+        path.join(frontendPath, "index.html");
+
     if (fs.existsSync(indexPath)) {
+
         res.sendFile(indexPath);
+
     } else {
-        res.status(404).send("Frontend index.html not found on server.");
+
+        res.status(404).send(
+            "Frontend index.html not found."
+        );
+
     }
+
 });
 
 // ======================
-// Start Server
+// START SERVER
 // ======================
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
+
+server.listen(
+    PORT,
+    "0.0.0.0",
+    () => {
+
+        console.log(
+            `🚀 Server running on port ${PORT}`
+        );
+
+    }
+);
