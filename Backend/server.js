@@ -1,4 +1,13 @@
+const frontendPath = path.join(__dirname, "../Frontend");
+
+app.use(express.static(frontendPath));
+
+app.get("/", (req, res) => {
+    res.sendFile(path.join(frontendPath, "index.html"));
+});
+
 require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
